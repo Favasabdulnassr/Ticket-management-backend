@@ -7,7 +7,7 @@ class TicketListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = ('id', 'title', 'priority', 'status', 'created_by', 'created_by_name', 'assigned_to', 'assigned_to_name', 'created_at')
+        fields = ('id', 'title', 'description', 'priority', 'status', 'created_by', 'created_by_name', 'assigned_to', 'assigned_to_name', 'resolution_comment', 'created_at')
 
 class TicketDetailSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.username', read_only=True)
