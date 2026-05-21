@@ -15,6 +15,7 @@ from .serializers import (
     TicketUpdateSerializer, TicketResolveSerializer
 )
 from .permissions import IsTicketOwner, IsAdminRole
+from .filters import TicketFilter
 
 class TicketCreateView(generics.CreateAPIView):
     queryset = Ticket.objects.all()
@@ -29,7 +30,7 @@ class UserTicketListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     pagination_class = TicketPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['status', 'priority', 'created_at']
+    filterset_class = TicketFilter
     search_fields = ['title', 'description']
 
     def get_queryset(self):
@@ -47,7 +48,7 @@ class AdminTicketViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.
     queryset = Ticket.objects.all()
     pagination_class = TicketPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['status', 'priority', 'created_at']
+    filterset_class = TicketFilter
     search_fields = ['title', 'description', 'created_by__username', 'assigned_to__username']
 
     def get_serializer_class(self):

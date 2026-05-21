@@ -46,7 +46,6 @@ urlpatterns = [
 
     # Authentication & Accounts Routes
     path('api/v1/auth/', include('accounts.urls')),
-    path('api/v1/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/', include('tickets.urls')),
 ]
 
