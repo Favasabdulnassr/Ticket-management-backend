@@ -49,11 +49,31 @@ class TicketUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Invalid status.")
         return value
         
-    def validate_resolution_comment(self, value):
+    def validate_assigned_to(self, value):
+        # Allow null (unassigned)
+        if not value:
+            return None
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        # If DRF already converted to a User instance, use it directly
+        if isinstance(value, User):
+            assigned_user = value
+        else:
+            try:
+                assigned_user = User.objects.get(pk=value)
+            except User.DoesNotExist:
+                raise serializers.ValidationError("Assigned user does not exist.")
+        if assigned_user.role != 'ADMIN' and not assigned_user.is_staff and not assigned_user.is_superuser:
+            raise serializers.ValidationError("Only admin users can be assigned to tickets.")
+        return assigned_user
+
+    def validate(self, attrs):
         request = self.context.get('request')
-        if request and request.user.role != 'ADMIN' and value:
-            raise serializers.ValidationError("Only admins can add or edit resolution comments.")
-        return value
+        if request and 'resolution_comment' in attrs:
+            user = request.user
+            if user.role != 'ADMIN' and not user.is_staff and not user.is_superuser:
+                raise serializers.ValidationError({"resolution_comment": "Only admins can add or edit resolution comments."})
+        return attrs
 
 class TicketResolveSerializer(serializers.ModelSerializer):
     resolution_comment = serializers.CharField(required=True)
@@ -64,6 +84,14 @@ class TicketResolveSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context.get('request')
-        if request and request.user.role != 'ADMIN':
-            raise serializers.ValidationError("Only admins can resolve tickets and add resolution comments.")
+        if request:
+            user = request.user
+            if user.role != 'ADMIN' and not user.is_staff and not user.is_superuser:
+                raise serializers.ValidationError("Only admins can resolve tickets and add resolution comments.")
+        
+        if not attrs.get('resolution_comment', '').strip():
+            raise serializers.ValidationError({
+                "resolution_comment": "Resolution comment is required when resolving a ticket."
+            })
+            
         return attrs

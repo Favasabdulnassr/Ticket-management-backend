@@ -10,7 +10,8 @@ class IsTicketOwner(permissions.BasePermission):
 
 class IsAdminRole(permissions.BasePermission):
     """
-    Allows access only to users with the ADMIN role.
+    Allows access to users with the ADMIN role, or Django staff/superusers.
     """
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.role == 'ADMIN')
+        user = request.user
+        return bool(user and user.is_authenticated and (user.role == 'ADMIN' or user.is_staff or user.is_superuser))
