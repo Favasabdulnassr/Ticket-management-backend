@@ -1,4 +1,10 @@
-from rest_framework import generics, filters, viewsets, mixins, status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework import generics, viewsets,mixins,filters, status
+
+class TicketPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -21,6 +27,7 @@ class TicketCreateView(generics.CreateAPIView):
 class UserTicketListView(generics.ListAPIView):
     serializer_class = TicketListSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = TicketPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['status', 'priority', 'created_at']
     search_fields = ['title', 'description']
@@ -38,7 +45,7 @@ class UserTicketDetailView(generics.RetrieveAPIView):
 
 class AdminTicketViewSet(mixins.ListModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     queryset = Ticket.objects.all()
-    permission_classes = [IsAdminRole]
+    pagination_class = TicketPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['status', 'priority', 'created_at']
     search_fields = ['title', 'description', 'created_by__username', 'assigned_to__username']
